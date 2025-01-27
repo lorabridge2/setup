@@ -1,5 +1,5 @@
 # LoRaBridge Ansible Setup
-This repository is part of the [LoRaBridge](https://github.com/lorabridge/lorabridge) project and provides an ansible project for setting up LoRaBridge devices via ssh.
+This repository is part of the [LoRaBridge](https://github.com/lorabridge2/lorabridge) project and provides an ansible project for setting up LoRaBridge devices via ssh.
 This setup method automates several steps of the installation process of bridge and gateways devices. You need to clone this repository.
 
 You need to prepare the Raspberry Pi devices as described in the [docs]().
@@ -9,8 +9,8 @@ You need to prepare the Raspberry Pi devices as described in the [docs]().
 Download the code for the Ansible setup and switch inside the folder:
 
 ```bash
-git clone https://github.com/lorabridge/lorabridge-setup.git
-cd lorabridge-setup
+git clone https://github.com/lorabridge2/setup.git
+cd setup
 ```
 
 ### Ansible Controller Requirements
