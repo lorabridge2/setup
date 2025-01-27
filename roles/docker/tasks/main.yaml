@@ -48,12 +48,18 @@
 - name: clone git repository
   ansible.builtin.git:
     # repo: "https://{{ github_user }}:{{ github_pac }}@github.com/lorabridge/lorabridge.git"
-    repo: "https://github.com/lorabridge/lorabridge.git"
-    dest: /home/pi/lorabridge
+    repo: "https://github.com/lorabridge2/lorabridge.git"
+    dest: /home/pi/lorabridge2
     accept_newhostkey: yes
     recursive: no
   become: no
   no_log: true
+
+  - name: checkout firmware submodule
+  ansible.builtin.command: "git submodule update --init bridge/bridge-lorawan-tx"
+  become: no
+  args:
+    chdir: /home/pi/lorabridge2/
 
 - name: generate chirpstack api secret
   local_action:
@@ -112,6 +118,7 @@
   ansible.builtin.command: "pip3 --version"
   register: pip_version
   become: no
+  check_mode: false
 
 - name: install ansible docker_compose module requirements
   pip:
@@ -135,6 +142,20 @@
 
 - name: enable i2c
   ansible.builtin.command: raspi-config nonint do_i2c 0
+
+- name: install esptool for flashing esp32 firmware
+  pip:
+    name: "{{ packages }}"
+    extra_args: "{{ '--break-system-packages' if (pip_version.stdout | ansible.builtin.split(' '))[1] is version('23.0.1', 'ge') else '' }}"
+  vars:
+    packages:
+      - esptool
+
+- name: flash esp32 firmware
+  ansible.builtin.command: "./flash_command.sh"
+  become: no
+  args:
+    chdir: /home/pi/lorabridge2/bridge/bridge-lorawan-tx/rpi_flashing
 
 - name: pull containers (this may take a while)
   ansible.builtin.command: docker compose pull
