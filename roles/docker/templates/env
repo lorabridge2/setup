@@ -16,11 +16,13 @@ LORA_DEV_EUI={{ dev_eui }}
 LORA_DEV_KEY={{ dev_key }}
 
 BASIC_AUTH='{{ basic_auth_creds.stdout }}'
+
+NODERED_HOST=node-red
+NODERED_PORT=1880
+SERIAL_PORT=/dev/ttyACM0
 {% endif %}
 
 {% if 'gateways' in group_names %}
-CHIRP_TOPIC=application/00000000-0000-0000-0000-000000000001/device
-
 DEV_MAN_TOPIC=devicemanager
 DEV_DISCOVERY_TOPIC=lorabridge/discovery
 DEV_STATE_TOPIC=lorabridge/state
@@ -28,4 +30,11 @@ DEV_STATE_TOPIC=lorabridge/state
 CHIRPSTACK_DEV_EUI=\x{{ dev_eui }}
 CHIRPSTACK_DEV_KEY=\x{{ dev_key }}
 CHIRPSTACK_API_SECRET={{ chirp_secret.stdout }}
+CHIRPSTACK_USER=admin
+CHIRPSTACK_PASSWORD=admin
+
+COUCHDB_USER=admin
+COUCHDB_PASSWORD=couchdb
+COUCHDB_PORT=5984
+COUCHDB_DB=mydb
 {% endif %}
