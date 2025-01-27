@@ -58,6 +58,7 @@
   - name: checkout firmware submodule
   ansible.builtin.command: "git submodule update --init bridge/bridge-lorawan-tx"
   become: no
+  when: "'bridges' in group_names"
   args:
     chdir: /home/pi/lorabridge2/
 
@@ -150,12 +151,14 @@
   vars:
     packages:
       - esptool
+  when: "'bridges' in group_names"
 
 - name: flash esp32 firmware
   ansible.builtin.command: "./flash_command.sh"
   become: no
   args:
     chdir: /home/pi/lorabridge2/bridge/bridge-lorawan-tx/rpi_flashing
+  when: "'bridges' in group_names"
 
 - name: pull containers (this may take a while)
   ansible.builtin.command: docker compose pull
