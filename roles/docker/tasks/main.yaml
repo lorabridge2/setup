@@ -111,7 +111,7 @@
     dest: /home/pi/lorabridge/{{ 'bridge' if 'bridges' in group_names else 'gateway'}}/.env
     owner: pi
     group: pi
-    mode: 0664
+    mode: 0660
     force: no
   notify: 
     - print basic auth password
