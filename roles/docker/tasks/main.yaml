@@ -55,7 +55,7 @@
   become: no
   no_log: true
 
-  - name: checkout firmware submodule
+- name: checkout firmware submodule
   ansible.builtin.command: "git submodule update --init bridge/bridge-lorawan-tx"
   become: no
   when: "'bridges' in group_names"
@@ -160,9 +160,9 @@
       block:
         - name: create data directory
           ansible.builtin.file:
-          path: /home/pi/lorabridge2/bridge/bridge-lorawan-tx/rpi_flashing/data
-          state: directory
-          mode: '0755'
+            path: /home/pi/lorabridge2/bridge/bridge-lorawan-tx/rpi_flashing/data
+            state: directory
+            mode: '0755'
         
         - name: template data/secrets.txt file
           ansible.builtin.template:
@@ -181,19 +181,19 @@
         
         - name: remove data directory
           ansible.builtin.file:
-          path: /home/pi/lorabridge2/bridge/bridge-lorawan-tx/rpi_flashing/data
-          state: absent
+            path: /home/pi/lorabridge2/bridge/bridge-lorawan-tx/rpi_flashing/data
+            state: absent
         
-      - name: flash esp32 firmware
-        ansible.builtin.command: "./flash_command.sh"
-        become: no
-        args:
-          chdir: /home/pi/lorabridge2/bridge/bridge-lorawan-tx/rpi_flashing
+    - name: flash esp32 firmware
+      ansible.builtin.command: "./flash_command.sh"
+      become: no
+      args:
+        chdir: /home/pi/lorabridge2/bridge/bridge-lorawan-tx/rpi_flashing
       
-      - name: remove spiffs binary
-          ansible.builtin.file:
-          path: /home/pi/lorabridge2/bridge/bridge-lorawan-tx/rpi_flashing/spiffs.bin
-          state: absent
+    - name: remove spiffs binary
+      ansible.builtin.file:
+        path: /home/pi/lorabridge2/bridge/bridge-lorawan-tx/rpi_flashing/spiffs.bin
+        state: absent
   when: "'bridges' in group_names"
 
 - name: pull containers (this may take a while)
