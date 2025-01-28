@@ -5,3 +5,7 @@
 - name: print basic auth password
   ansible.builtin.debug:
     msg: "generated basic auth password: {{ basic_auth_pw }} | (user: admin)"
+
+- name: print chirpstack password
+  ansible.builtin.debug:
+    msg: "generated chirpstack password: {{ chirpstack_pw }} | (user: admin)"
