@@ -13,6 +13,7 @@ MQTT_TOPIC=zigbee2mqtt
 REDIS_LIST=lorabridge_data
 
 LORA_DEV_EUI={{ dev_eui }}
+LORA_JOIN_EUI={{ join_eui }}
 LORA_DEV_KEY={{ dev_key }}
 
 BASIC_AUTH='{{ basic_auth_creds.stdout }}'
