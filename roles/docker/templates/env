@@ -31,9 +31,9 @@ DEV_STATE_TOPIC=lorabridge/state
 CHIRPSTACK_DEV_EUI=\x{{ dev_eui }}
 CHIRPSTACK_DEV_KEY=\x{{ dev_key }}
 CHIRPSTACK_API_SECRET={{ chirp_secret.stdout }}
-CHIRPSTACK_HASH={{ chirp_hash.stdout }}
+CHIRPSTACK_HASH='{{ chirp_hash.stdout }}'
 CHIRPSTACK_USER=admin
-CHIRPSTACK_PASSWORD={{ chirpstack_pw }}
+CHIRPSTACK_PASSWORD='{{ chirpstack_pw }}'
 
 COUCHDB_USER=admin
 COUCHDB_PASSWORD=couchdb
