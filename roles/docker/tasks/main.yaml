@@ -87,7 +87,7 @@
 - name: generate chirpstack user hash
   local_action:
     module: ansible.builtin.command
-    cmd: python3 -c 'import os;import hashlib;import base64;iterations=210000;dklen=64;salt=os.urandom(32);print(f"$pbkdf2-sha512$i={iterations},l={dklen}${base64.b64encode(salt).decode()}${base64.b64encode(hashlib.pbkdf2_hmac("sha512","{{ chirpstack_pw }}".encode(), salt,iterations=iterations,dklen=dklen)).decode()}")'
+    cmd: python3 -c 'import os;import hashlib;import base64;iterations=210000;dklen=64;salt=os.urandom(32);print(f"$pbkdf2-sha512$i={iterations},l={dklen}${base64.b64encode(salt).decode().replace('=','')}${base64.b64encode(hashlib.pbkdf2_hmac("sha512","{{ chirpstack_pw }}".encode(), salt,iterations=iterations,dklen=dklen)).decode().replace('=','')}")'
   register: chirp_hash
   when: "'gateways' in group_names"
   become: no
@@ -108,7 +108,7 @@
 - name: template .env file
   ansible.builtin.template:
     src: env
-    dest: /home/pi/lorabridge/{{ 'bridge' if 'bridges' in group_names else 'gateway'}}/.env
+    dest: /home/pi/lorabridge2/{{ 'bridge' if 'bridges' in group_names else 'gateway'}}/.env
     owner: pi
     group: pi
     mode: 0660
@@ -184,6 +184,17 @@
             mode: 0664
             newline_sequence: "\\r\\n"
 
+        - name: install dependencies for mkspiffs (exec 32bit binary of 64bit)
+          apt:
+            name: "{{ packages }}"
+            state: latest
+            force: yes
+            update_cache: yes
+          vars:
+            packages:
+              - libc6:armhf
+              - libstdc++6:armhf
+
         - name: create spiffs binary
           ansible.builtin.command: "./spiffs_config.sh"
           become: no
@@ -210,11 +221,11 @@
 - name: pull containers (this may take a while)
   ansible.builtin.command: docker compose pull
   args:
-    chdir: /home/pi/lorabridge/{{ 'bridge' if 'bridges' in group_names else 'gateway'}}
+    chdir: /home/pi/lorabridge2/{{ 'bridge' if 'bridges' in group_names else 'gateway'}}
   become: no
 
 - name: start containers
   ansible.builtin.command: docker compose up -d
   args:
-    chdir: /home/pi/lorabridge/{{ 'bridge' if 'bridges' in group_names else 'gateway'}}
+    chdir: /home/pi/lorabridge2/{{ 'bridge' if 'bridges' in group_names else 'gateway'}}
 
