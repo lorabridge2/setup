@@ -21,6 +21,8 @@ BASIC_AUTH='{{ basic_auth_creds.stdout }}'
 NODERED_HOST=node-red
 NODERED_PORT=1880
 SERIAL_PORT=/dev/ttyACM0
+
+GID_DOCKER={{ bridge_gids.results[0].gid }}
 {% endif %}
 
 {% if 'gateways' in group_names %}
@@ -39,4 +41,7 @@ COUCHDB_USER=admin
 COUCHDB_PASSWORD=couchdb
 COUCHDB_PORT=5984
 COUCHDB_DB=mydb
+
+GID_SPI={{ gateway_gids.results[0].gid }}
+GID_GPIO={{ gateway_gids.results[1].gid }}
 {% endif %}

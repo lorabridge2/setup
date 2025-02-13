@@ -105,6 +105,25 @@
   become: no
   no_log: true
   
+- name: retrieve gateway groups spi, gpio
+  ansible.builtin.group:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - spi
+    - gpio
+  when: "'gateways' in group_names"
+  register: gateway_gids
+
+- name: retrieve bridge groups docker
+  ansible.builtin.group:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - docker
+  when: "'bridges' in group_names"
+  register: bridge_gids
+
 - name: template .env file
   ansible.builtin.template:
     src: env
