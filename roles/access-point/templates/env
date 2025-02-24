@@ -1,0 +1,7 @@
+RASPAP_SSID='{{ raspap_wpa_ssid | default('raspap-webgui') }}'
+RASPAP_SSID_PASS='{{ raspap_wpa_passphrase | default('ChangeMe') }}'
+RASPAP_COUNTRY={{ RASPAP_COUNTRY | default('GB') }}
+RASPAP_WEBGUI_USER={{ RASPAP_WEBGUI_USER | default('admin') }}
+RASPAP_WEBGUI_PASS='{{ raspap_basic_pw | default('secret') }}'
+RASPAP_WEBGUI_PORT={{ RASPAP_WEBGUI_PORT | default('80') }}
+RASPAP_hostapd_interface=wlan1

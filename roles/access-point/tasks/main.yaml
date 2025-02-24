@@ -1,54 +1,107 @@
 ---
-- name: Download raspap install script
-  ansible.builtin.get_url:
-    url: https://install.raspap.com
-    dest: /tmp/install-raspap.sh
-    mode: '0770'
-
-- name: install raspap
-  ansible.builtin.command:
-    cmd: /tmp/install-raspap.sh --yes --openvpn 0 --adblock 0
-  # when: "'bridges' in group_names"
-
 - name: generate random strings
   ansible.builtin.set_fact:
-    raspap_basic_pw: "{{ raspap_basic_pw|default(lookup('community.general.random_string', override_special='!#$%&()*+,-./:;<=>?@[]^_`{|}~', length=20)) }}"
-    raspap_wpa_passphrase: "{{ raspap_wpa_passphrase|default(lookup('community.general.random_string', override_special='!#$%&()*+,-./:;<=>?@[]^_`{|}~', length=20)) }}"
+    # removed & from possible characters as raspap-docker env-setup.sh seems to have the bug that replaces & with the default line e.g. wpa_passphrase=ChangeMe
+    raspap_basic_pw: "{{ raspap_basic_pw|default(lookup('community.general.random_string', override_special='!#$%()*+,-./:;<=>?@[]^_`{|}~', length=20)) }}"
+    # removed & from possible characters as raspap-docker env-setup.sh seems to have the bug that replaces & with the default line e.g. wpa_passphrase=ChangeMe
+    # escaping with \& should also be possible
+    raspap_wpa_passphrase: "{{ raspap_wpa_passphrase|default(lookup('community.general.random_string', override_special='!#$%()*+,-./:;<=>?@[]^_`{|}~', length=20)) }}"
     raspap_wpa_ssid: "{{raspap_wpa_ssid|default(lookup('community.general.random_pet', words=3, prefix='lorabridge')) }}"
     # remove " and ' from specials, because ansible uses read_token from shlex.py which cannot handle quotes (task: generate basic auth credentials)
     # remove \ because htpasswd throws error
   run_once: true
   no_log: true
 
-- name: change ssid and passphrase
-  ansible.builtin.lineinfile:
-    path: /etc/hostapd/hostapd.conf
-    search_string: "{{ item.old }}"
-    line: "{{ item.new }}"
-  loop:
-    - { old: 'ssid=raspi-webgui', new: "ssid={{ raspap_wpa_ssid }}" }
-    - { old: 'wpa_passphrase=ChangeMe', new: 'wpa_passphrase={{raspap_wpa_passphrase}}' }
-  notify: print raspap ssid and pw
-  # when: "'bridges' in group_names"
+- name: Copy 99-wlan1.rules to /etc/udev/rules.d
+  copy:
+    src: 99-wlan1.rules
+    dest: /etc/udev/rules.d/99-wlan1.rules
+    owner: root
+    group: root
+    mode: '0644'
 
-- name: generate basic auth credentials
-  local_action:
-    module: ansible.builtin.command
-    cmd: "htpasswd -nbBC10 admin {{ raspap_basic_pw }}"
-  register: raspap_auth_creds
-  # when: "'bridges' in group_names"
-  become: no
-  no_log: true
+- name: exclude wlan1 from NetworkManager
+  copy:
+    src: 99-unmanaged-devices.conf
+    dest: /etc/NetworkManager/conf.d/99-unmanaged-devices.conf
+    owner: root
+    group: root
+    mode: '0644'
 
-- name: change webinterface user and password
-  ansible.builtin.copy:
-    dest: /etc/raspap/raspap.auth
-    content: "{{ raspap_auth_creds|replace(':', '\n', 1) }}"
-    owner: www-data
-    group: www-data
-    mode: 0644
-  notify: print raspap web auth password
-  register: change_ap
+- name: Reload NetworkManager
+  systemd:
+    name: NetworkManager
+    state: reloaded
 
-  
-  
+- name: Check for wlan1 interface
+  command: ip link show wlan1
+  register: wlan1_status
+  ignore_errors: yes
+  failed_when: wlan1_status.rc >= 2
+
+- name: create wlan1
+  command: /usr/sbin/iw dev wlan0 interface add wlan1 type __ap
+  # /usr/sbin/iw dev wlan0 interface add wlan1 type station
+  when: wlan1_status.rc != 0
+
+- name: Clone the RaspAP Docker repository
+  git:
+    repo: https://github.com/RaspAP/raspap-docker.git
+    dest: /opt/raspap-docker
+
+- name: Copy docker-compose.yaml to target system
+  copy:
+    src: custom-docker-compose.yaml
+    dest: /opt/raspap-docker/custom-docker-compose.yaml
+    owner: root
+    group: root
+    mode: '0644'
+  notify: 
+    - print raspap web auth password
+    - print raspap ssid and pw
+
+- name: Copy firewall-rules.sh to target system
+  copy:
+    src: custom-firewall-rules.sh
+    dest: /opt/raspap-docker/custom-firewall-rules.sh
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Copy dhcpcd.conf to target system
+  copy:
+    src: custom-dhcpcd.conf
+    dest: /opt/raspap-docker/custom-dhcpcd.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Copy dnsmasq config to target system
+  copy:
+    src: custom-090_wlan0.conf
+    dest: /opt/raspap-docker/custom-090_wlan0.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+# - name: Uncomment cgroup line in docker-compose.yaml
+#   replace:
+#     path: /opt/raspap-docker/docker-compose.yaml
+#     regexp: "#(cgroup: host # uncomment when using an ARM device)"
+#     replace: "\1"
+
+- name: Create .env file for RaspAP
+  template:
+    src: env
+    dest: /opt/raspap-docker/.env
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Start Docker Compose in detached mode
+  command: docker compose -f custom-docker-compose.yaml up -d
+  args:
+    chdir: /opt/raspap-docker
+  # async: 120  # Maximum time the task is allowed to run (in seconds)
+  # poll: 0  # Do not wait for the result
+
