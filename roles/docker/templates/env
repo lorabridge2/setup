@@ -38,7 +38,7 @@ CHIRPSTACK_USER=admin
 CHIRPSTACK_PASSWORD='{{ chirpstack_pw }}'
 
 COUCHDB_USER=admin
-COUCHDB_PASSWORD=couchdb
+COUCHDB_PASSWORD='{{ couchdb_pw }}'
 COUCHDB_PORT=5984
 COUCHDB_DB=mydb
 
