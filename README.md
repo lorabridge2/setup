@@ -25,6 +25,8 @@ You need to install the requirements listed in following files inside the reposi
 >```bash
 >xargs apt install -y < apt-requirements.txt
 ># apt-get install $(cat apt-requirements.txt | tr '\n' ' ')
+># following command installs pipenv system wide, use "--break-system-packages" with caution
+>pip3 install pipenv --break-system-packages
 >pipenv install
 >ansible-galaxy install -r requirements.yml
 >```
